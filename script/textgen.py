@@ -10,7 +10,7 @@ def get_text_data(wrf_file, airport, coords, hours, forecast_times, run_time):
     output_lines.append(f"UGA-WRF {run_time} - Init: {forecast_times[0]} - Text Forecast for {airport.upper()}")
     output_lines.append(f"Forecast Start Time: {forecast_time}")
     output_lines.append(f"UTC (Fcst) Hr | Temp | Dewp | Wind (dir) | Pressure")
-    for t in range(1, hours + 1):
+    for t in range(1, hours):
         t_data = getvar(wrf_file, "T2", timeidx=t)[y, x].values
         td_data = getvar(wrf_file, "td2", timeidx=t)[y, x].values
         wspd_data = getvar(wrf_file, "wspd_wdir10", timeidx=t, units="mph")

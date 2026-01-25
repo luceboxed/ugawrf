@@ -16,6 +16,13 @@ const products = {
     "total_precip": "Total Precipitation",
     "1hr_snowfall": "1-Hour Snowfall",
     "snowfall": "Snowfall",
+    "ptype": "Precipitation Type",
+    "4panel_ptype": "4-Panel Precipitation Type",
+    "afwarain": "Accumulated Rainfall",
+    "afwasnow": "Accumulated Snowfall (10:1)",
+    "afwasnow_k": "Accumulated Snowfall (Kuchera)",
+    "afwafrz": "Accumulated Freezing Rain",
+    "afwaslt": "Accumulated Icefall (Sleet)",
     "4panel_cloudcover": "4-Panel Cloud Cover",
     "cloudcover": "Cloud Cover",
     "temp_850mb": "Temperature (850mb)",
@@ -35,11 +42,12 @@ const products = {
     "wind_300mb": "Wind (300mb)",
     "heights_700mb": "Heights (700mb)",
     "heights_500mb": "Heights (500mb)",
+    "stagazing": "Stargazing Index"
 };
 
 const outputs = "https://storage.googleapis.com/uga-wrf-website/outputs/";
 //const outputs = "runs/"
-const hours = 24;
+const hours = 48;
 let timestep = 0;
 let product = "temperature";
 const slider = document.getElementById('timeSlider');
@@ -55,10 +63,11 @@ const textForecast = document.getElementById('textForecast');
 const playButton = document.getElementById("playButton");
 const pauseButton = document.getElementById("pauseButton");
 const speedSelector = document.getElementById("speedSelector");
-const multiEnabler = document.getElementById("multiEnabler")
-const multiSelector = document.getElementById("multiSelector")
-const multiSubchooser = document.getElementById('multiSubchooser')
-const secondaryImage = document.getElementById('secondaryImage')
+const sizeSelector = document.getElementById("sizeSelector");
+const multiEnabler = document.getElementById("multiEnabler");
+const multiSelector = document.getElementById("multiSelector");
+const multiSubchooser = document.getElementById('multiSubchooser');
+const secondaryImage = document.getElementById('secondaryImage');
 const stationIds = [
     "sahn",
     "scni",
@@ -69,13 +78,11 @@ const stationIds = [
     "sgsp",
     "shun",
     "stae",
-    "sags",
-    "stys"
+    "sags"
   ];
 const stationElements = Object.fromEntries(
     stationIds.map(id => [id, document.getElementById(id)])
 );
-const georgiaEnabler = document.getElementById("georgiaEnabler");
 
 async function loadDirectories(pageToken = '') {
     const baseUrl = 'https://storage.googleapis.com/storage/v1/b/uga-wrf-website/o?delimiter=/&prefix=outputs/';
@@ -100,6 +107,7 @@ async function loadDirectories(pageToken = '') {
     });
     updateImage("temperature");
     updateTextForecast();
+    checkRunStatus();
     const run = runSelector.value;
     const domain = domainSelector.value;
     document.getElementById("metadata").href = `${outputs}${run}/${domain}/metadata.json`
@@ -107,7 +115,6 @@ async function loadDirectories(pageToken = '') {
 async function loadAlerts() {
     const response = await fetch('https://api.weather.gov/alerts/active?point=33.94872107111243,-83.3752234533988');
     const data = await response.json();
-    console.log(data);
     const alertsDiv = document.getElementById('alertText');
     if (data.features.length > 0) {
         let alertMessages = data.features.map(alert => {
@@ -126,23 +133,9 @@ function updateImage(selectedProduct = product) {
     const domain = domainSelector.value;
     timestep = Number(slider.value);
     timeLabel.textContent = `Hour ${timestep}/${hours}`;
-
-    
-
-    if (georgiaEnabler.checked == true) {
-        weatherImage.onerror = () => {
-            weatherImage.src = "/Frame_Unavailable.png";
-        };
-
-        weatherImage.src = `${outputs}${run}/${domain}/${product}/hour_${timestep}_ga.png`;
-
-    } else {    
-
-        weatherImage.src = `${outputs}${run}/${domain}/${product}/hour_${timestep}.png`;
-
-        weatherImage.onerror = () => {
-            weatherImage.src = "/Frame_Unavailable.png";
-        };
+    weatherImage.src = `${outputs}${run}/${domain}/${product}/hour_${timestep}.png`;
+    weatherImage.onerror = () => {
+        weatherImage.src = "/Frame_Unavailable.png";
     }
 
     
@@ -163,25 +156,23 @@ function updateSecondaryDisplay() {
     const subchoosed = multiSubchooser.value
     timestep = Number(slider.value);
     if (multiSelector.value == 'map')
-        if (georgiaEnabler.checked == true) {
-            secondaryImage.src = `${outputs}${run}/${domain}/${subchoosed}/hour_${timestep}_ga.png`
-        } else {
-            secondaryImage.src = `${outputs}${run}/${domain}/${subchoosed}/hour_${timestep}.png`
-        }
+        secondaryImage.src = `${outputs}${run}/${domain}/${subchoosed}/hour_${timestep}.png`
     else if (multiSelector.value == 'skewt')
-        {
-            secondaryImage.src = `${outputs}${run}/${domain}/skewt/${subchoosed}/hour_${timestep}.png`
-        }
+        secondaryImage.src = `${outputs}${run}/${domain}/skewt/${subchoosed}/hour_${timestep}.png`
 }
 async function updateTextForecast() {
     const run = runSelector.value;
     const domain = domainSelector.value;
     const textOption = textSelector.value;
-    fetch(`${outputs}${run}/${domain}/text/${textOption}/forecast.txt`)
-        .then(response => response.text())
-        .then(data => {
-            textForecast.textContent = data;
-        });
+    try {
+        fetch(`${outputs}${run}/${domain}/text/${textOption}/forecast.txt`)
+            .then(response => response.text())
+            .then(data => {
+                textForecast.textContent = data;
+            });
+    } catch (error) {
+        textForecast.textContent = "Text forecast failed to load. Text forecasts are not processed until after a run finishes, so please try again later."
+    }
     meteogram.src = `${outputs}${run}/${domain}/meteogram/${textOption}/meteogram.png`;
 }
 function toggleSecondaryDisplay() {
@@ -243,6 +234,7 @@ runSelector.addEventListener('change', () => {
     document.getElementById("metadata").href = `${outputs}${run}/${domain}/metadata.json`
     updateImage();
     updateTextForecast();
+    checkRunStatus();
 });
 domainSelector.addEventListener('change', () => {
     const run = runSelector.value;
@@ -252,8 +244,8 @@ domainSelector.addEventListener('change', () => {
     updateTextForecast();
 });
 textSelector.addEventListener('change', updateTextForecast);
+sizeSelector.addEventListener('change', () => weatherImage.width = sizeSelector.value)
 weatherImage.addEventListener('click', () => slider.focus());
-georgiaEnabler.addEventListener('change', () => updateImage());
 hodographOnly.addEventListener('click', () => updateImage());
 textForecast.addEventListener('click', () => textSelector.focus());
 meteogram.addEventListener('click', () => textSelector.focus());
@@ -283,12 +275,32 @@ playButton.addEventListener('click', startLoop);
 pauseButton.addEventListener('click', endLoop);
 loadDirectories();
 window.onload = function () {
+    loadAlerts();
     timestep = Number(slider.value);
     updateImage("temperature");
     updateTextForecast();
     multiEnabler.checked = false
     multiSelector.disabled = true
     multiSubchooser.disabled = true
-    loadAlerts();
+    weatherImage.width = sizeSelector.value
 };
 updateTextForecast();
+
+async function checkRunStatus() {
+    const run = runSelector.value;
+    const domain = domainSelector.value;
+    const statusElement = document.getElementById('runStatus');
+    statusElement.textContent = "";
+    try {
+        const response = await fetch(`${outputs}${run}/${domain}/metadata.json`, {cache: 'no-store'});
+        if (response.ok) {
+            const data = await response.json();
+            console.log(data)
+            if (data.in_progress === true) {
+                statusElement.textContent = "Model run in-progress/unfinished - not all frames or products will be available";
+            } 
+        }
+    } catch (error) {
+        console.log("no metadata found or fetch error");
+    }
+}

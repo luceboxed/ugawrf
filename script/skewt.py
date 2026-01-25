@@ -14,8 +14,10 @@ import numpy as np
 import datetime as dt
 from adjustText import adjust_text
 
-def plot_skewt(data, x_y, timestep, airport, output_path, forecast_times, run_time):
-    forecast_time = forecast_times[timestep].strftime("%Y-%m-%d %H:%M UTC")
+def plot_skewt(data, x_y, timestep, airport, output_path, forecast_times, init_dt, init_str, run_time):
+    valid_time = forecast_times[timestep]
+    f_hour = int(round((valid_time - init_dt).total_seconds() / 3600))
+    valid_time_str = valid_time.strftime("%Y-%m-%d %H:%M UTC")
     p1 = getvar(data,"pressure",timeidx=timestep)
     T1 = getvar(data,"tc",timeidx=timestep)
     Td1 = getvar(data,"td",timeidx=timestep)
@@ -116,10 +118,10 @@ def plot_skewt(data, x_y, timestep, airport, output_path, forecast_times, run_ti
     plt.figtext(0.83, 0.42, f"K Index: {k_index.magnitude:.1f}", ha="center", va="top", fontsize=12, color='black')
     plt.figtext(0.83, 0.40, f"Total Totals: {total_totals.magnitude:.1f}", ha="center", va="top", fontsize=12, color='black')
     fig.subplots_adjust(top=0.9, right=1, left=0, bottom=0, wspace=0, hspace=0)
-    fig.suptitle(f"Upper Air Data for {airport.upper()} - Hour {timestep}\nValid: {forecast_time} - Init: {forecast_times[0]}", x=0.4, ha="center", va="top")
+    fig.suptitle(f"Upper Air Data for {airport.upper()} - Hour {f_hour}\nValid: {valid_time_str} - Init: {init_str}", x=0.4, ha="center", va="top")
     plt.annotate(f"UGA-WRF Run {run_time}", xy=(0.01, 0.01), xycoords='figure fraction', fontsize=8, color='black')
     os.makedirs(output_path, exist_ok=True)
-    plt.savefig(os.path.join(output_path, f"hour_{timestep}.png"), bbox_inches='tight')
+    plt.savefig(os.path.join(output_path, f"hour_{f_hour}.png"), bbox_inches='tight')
     plt.close()
     fig_hod = plt.figure(figsize=(6, 6))
     ax_hod = fig_hod.add_subplot(1, 1, 1)
@@ -144,10 +146,10 @@ def plot_skewt(data, x_y, timestep, airport, output_path, forecast_times, run_ti
     adjust_text(texts, ax=ax_hod, arrowprops=dict(arrowstyle='-', color='gray', lw=1), min_arrow_len=0.1)
     h2.plot(u, v, linewidth=2)
     h2.plot_colormapped(u, v, c=p, label='0-12 km wind')
-    ax_hod.set_title(f"UGA-WRF Hodograph for {airport.upper()} - Hour {timestep}\nValid: {forecast_time} - Init: {forecast_times[0]}")
+    ax_hod.set_title(f"UGA-WRF Hodograph for {airport.upper()} - Hour {f_hour}\nValid: {valid_time_str} - Init: {init_str}")
     ax_hod.set_xlabel('U (knots)')
     ax_hod.set_ylabel('V (knots)')
     fig_hod.tight_layout()
     fig_hod.savefig(
-    os.path.join(output_path, f"hodograph_hour_{timestep}.png"),bbox_inches='tight')
+    os.path.join(output_path, f"hodograph_hour_{f_hour}.png"),bbox_inches='tight')
     plt.close(fig_hod)

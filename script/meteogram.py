@@ -8,7 +8,7 @@ import os
 
 def plot_meteogram(wrf_file, airport, coords, output_path, forecast_times, wrfhours, run_time):
     x, y = ll_to_xy(wrf_file, coords[0], coords[1])
-    hours = np.arange(1, wrfhours + 1)
+    hours = np.arange(1, wrfhours)
     times = [forecast_times[t].strftime('%H UTC') for t in hours]
     u_wind = [to_np(getvar(wrf_file, "U10", timeidx=t)[y, x]) for t in hours]
     v_wind = [to_np(getvar(wrf_file, "V10", timeidx=t)[y, x]) for t in hours]

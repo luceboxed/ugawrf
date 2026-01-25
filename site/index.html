@@ -14,9 +14,9 @@
 </head>
 <body>
     <div style="background-color:rgb(0, 0, 0);color: rgb(221, 80, 45); text-align: center; padding-left: 5px; padding-right: 5px; margin-left: 5%;margin-right: 5%;">
-        <h3 id="alertText"></h3>
-        <h1>UGA-WRF Update - 01-15-2026</h1>
-        <p style="font-size: 125%;">1hr Temp Change @ 700, 500, 300mb (Aloft - Temps), Dew Point @ 850, 700, 500, 300mb and Echo Tops (Aloft - Moisture) have been deprecated and are no longer available.<br>Products for P-Type (Winter) and Stargazing Index (Special) have been added. They are still heavy works in progress. Let us know what you think! Colormaps for things like theta-e (Aloft - Temps) and upper air winds (Aloft - Winds) have been standardized and made more logical, too.<br>The WRF post-proc graphics have received a graphical overhaul to better match the MPAS post-proc graphics suite. We're looking for comments and thoughts on this; please let us know your feedback on them if you have any.</p>
+        <h2 id="alertText"></h2>
+        <h2>UGA-WRF Updates - 01-23-2026</h2>
+        <p style="font-size: 100%; text-align:left">!!! MAJOR WRF UPDATE !!! The WRF is temporarily running out 48 hours twice a day. This is down from 24 hours, 4x a day.<br>Our domain has changed! We have refined more into Georgia specifically and have dropped the domain resolution to ~1.5km.<br>To aid in CAD events, new products for 925mb Temps, 925mb Theta-e (Aloft - Temps), 925mb Winds (Aloft - Winds), and 925mb Relative Humidity (Aloft - Moisture) have been added.<br>🧪Experimental products for Overall P-Type, 4-Panel Ptype, Rain/Snow (10:1 & Kuchera ratios)/FrRn/Ice Totals (Winter) and Stargazing Index (Special) have been added. They are still heavy works in progress. Let us know what you think!</p>
     </div>
     
     <div style = "text-align:center">
@@ -25,13 +25,13 @@
     <label for="runSelector">Select Run:</label>
     <select id="runSelector">
     </select>
-    <label for="domainSelector">Select Domain:</label>
-    <select id="domainSelector">
+    <select id="domainSelector" style="display: none;">
         <option value="d01">Southeast (~1.6km)</option>
     </select>
+    <p id="runStatus" style="color: red; background-color:honeydew ; font-weight: bold; margin-left: 30%; margin-right: 30%;"></p>
     <p style="font-size: 75%">(YYYY-MM-DD HH:MM:SS UTC)</p>
     <h2 id="maps">Weather Maps</h2>
-    <p><a href="#top" style="font-size: 70%;">Back to Top</a></p>
+    <p><a href="#top" style="font-size: 75%;">Back to Top</a></p>
     <label for="dropdown">Select Product:</label>
     <div class="dropdown">
         <button class="dropbtn">Surface</button>
@@ -58,6 +58,8 @@
     <div class="dropdown">
         <button class="dropbtn">Aloft - Temps</button>
         <div class="dropdown-content">
+            <a id="temp_925mb" href="#">925mb Temperatures</a>
+            <a id="te_925mb" href="#">925mb Theta E</a>
             <a id="temp_850mb" href="#">850mb Temperatures</a>
             <a id="te_850mb" href="#">850mb Theta E</a>
             <a id="1hr_temp_c_850mb" href="#">1hr 850mb Temp Change</a>
@@ -70,6 +72,7 @@
     <div class="dropdown">
         <button class="dropbtn">Aloft - Winds</button>
         <div class="dropdown-content">
+            <a id="wind_925mb" href="#">925mb Winds</a>
             <a id="wind_850mb" href="#">850mb Winds</a>
             <a id="wind_700mb" href="#">700mb Winds</a>
             <a id="wind_500mb" href="#">500mb Winds</a>
@@ -79,6 +82,7 @@
     <div class="dropdown">
         <button class="dropbtn">Aloft - Moisture</button>
         <div class="dropdown-content">
+            <a id="rh_925mb" href="#">925mb RH</a>
             <a id="rh_850mb" href="#">850mb RH</a>
             <a id="rh_700mb" href="#">700mb RH</a>
             <a id="rh_500mb" href="#">500mb RH</a>
@@ -105,11 +109,11 @@
     <div class="dropdown">
         <button class="dropbtn">Winter</button>
         <div class="dropdown-content">
-            <a id="snowfall" href="#">Total Snow Accumulation</a>
-            <a id="1hr_snowfall" href="#">1-Hour Snow Accumulation</a>
-            <a id="ptype" href="#">Precipitation Type</a>
-            <a id="afwarain" href="#">(🧪Experimental) Rain Total </a>
+            <a id="ptype" href="#">(🧪Experimental) Precipitation Type</a>
+            <a id="4panel_ptype" href="#">(🧪Experimental) 4-Panel Precipitation Type</a>
             <a id="afwasnow" href="#">(🧪Experimental) Snowfall Total (10:1)</a>
+            <a id="afwasnow_k" href="#">(🧪Experimental) Snowfall Total (Kuchera)</a>
+            <a id="afwarain" href="#">(🧪Experimental) Rain Total </a>
             <a id="afwafrz" href="#">(🧪Experimental) Freezing Rain Total</a>
             <a id="afwaslt" href="#">(🧪Experimental) Icefall (i.e. Sleet) Total</a>
         </div>
@@ -117,11 +121,22 @@
     <div class="dropdown">
         <button class="dropbtn">Special</button>
         <div class="dropdown-content">
-            <a id="stargazing" href="#">Stargazing Index 🌌</a>
+            <a id="stargazing" href="#">(🧪Experimental) Stargazing Index 🌌</a>
         </div>
     </div>
-    <label for="georgiaEnabler">Georgia Only</label>
-    <input type="checkbox" id="georgiaEnabler">
+    <div class="dropdown">
+        <button class="dropbtn">🧪Experimental</button>
+        <div class="dropdown-content">
+            <a id="ptype" href="#">(🧪Experimental) Precipitation Type</a>
+            <a id="4panel_ptype" href="#">(🧪Experimental) 4-Panel Precipitation Type</a>
+            <a id="afwarain" href="#">(🧪Experimental) Rain Total </a>
+            <a id="afwasnow" href="#">(🧪Experimental) Snowfall Total (10:1)</a>
+            <a id="afwasnow_k" href="#">(🧪Experimental) Snowfall Total (Kuchera)</a>
+            <a id="afwafrz" href="#">(🧪Experimental) Freezing Rain Total</a>
+            <a id="afwaslt" href="#">(🧪Experimental) Icefall (i.e. Sleet) Total</a>
+            <a id="stargazing" href="#">(🧪Experimental) Stargazing Index 🌌</a>
+        </div>
+    </div>
     <br>
     <label for="multiEnabler">Secondary Display</label>
     <input type="checkbox" id="multiEnabler">
@@ -134,21 +149,33 @@
     </select>
     <br>
     <div class="multi-container" id="multiContainer">
-    <img id="weatherImage" src="" alt="Model Image" width="900" style="border: 2px solid rgb(176, 59, 30);">
+    <img id="weatherImage" src="" alt="Model Image" width="800" style="border: 2px solid rgb(176, 59, 30);">
     <img id="secondaryImage" src="" alt="Secondary Image" width="700" style="display: none; border: 2px solid rgb(176, 59, 30);">
     </div>
     <br>
     <label for="timeSlider">Timestep:</label>
-    <input type="range" id="timeSlider" min="1" max="24" value="0"/>
+    <input type="range" id="timeSlider" min="1" max="48" value="0"/>
     <label id="timeLabel">0</label>
     <br>
     <button type="button" id="playButton">Play</button>
     <button type="button" disabled id="pauseButton">Pause</button>
-    <abbr><label for="speedSelector">Frame Interval:</label></abbr>
+    <label for="speedSelector">Frame Interval:</label>
     <select id="speedSelector">
         <option value="1000">1sec</option>
         <option value="500">0.5sec</option>
         <option value="200">0.2sec</option>
+    </select>
+    <br>
+    <label for="sizeSelector">Change Image Size:</label>
+    <select id="sizeSelector">
+        <option value="640">80%</option>
+        <option value="720">90%</option>
+        <option value="800" selected>100%</option>
+        <option value="880">110%</option>
+        <option value="960">120%</option>
+        <option value="1040">130%</option>
+        <option value="1120">140%</option>
+        <option value="1200">150%</option>
     </select>
     <p style="font-size: 75%;">Tip: Click the weathermap to use your arrow keys to navigate through timesteps.</p>
     <h2 id="upper">Upper Air Plots</h2>
